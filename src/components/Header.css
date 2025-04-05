@@ -21,7 +21,19 @@
 
 .nav-buttons {
   display: flex;
+  gap: 1.5rem;
+}
+
+.profile-btn {
+  display: flex;
+  align-items: center;
   gap: 1rem;
+}
+
+.profile-icon {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
 }
 
 @media (max-width: 480px) {

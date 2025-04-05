@@ -8,13 +8,14 @@ import Quiz from './components/Quiz'
 import NotesArchive from './components/NotesArchive'
 import LiveRecord from './components/LiveRecord'
 import Settings from './components/Settings'
+import Profile from './components/Profile'
 import './App.css'
 
 function App() {
   return (
     <>
       <div className="app">
-      <Header />
+        <Header />
         <div className="content">
           <Routes>
             <Route path="/" element={<Home />} />
@@ -24,6 +25,7 @@ function App() {
             <Route path="/notes" element={<NotesArchive />} />
             <Route path="/record" element={<LiveRecord />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/profile" element={<Profile />} />
           </Routes>
         </div>
         <Footer />

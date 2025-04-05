@@ -2,6 +2,7 @@
   --white: #ffffff;
   --peach-light: #FFE5B4;
   --peach-dark: #f6b092;
+  --error: #ff4444;
 }
 
 .app {
@@ -75,6 +76,34 @@
   border-radius: 4px;
 }
 
+/* Password input styles */
+.password-input {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  color: #666;
+}
+
+.password-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+.password-toggle:hover {
+  color: var(--peach-dark);
+}
+
 /* Card styles */
 .card {
   background: var(--white);
@@ -93,4 +122,14 @@
     padding: 8px 16px;
     font-size: 0.9rem;
   }
+}
+
+/* Error message styles */
+.error-message {
+  color: var(--error);
+  text-align: center;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
 }
