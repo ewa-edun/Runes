@@ -9,6 +9,7 @@ import NotesArchive from './components/NotesArchive'
 import LiveRecord from './components/LiveRecord'
 import Settings from './components/Settings'
 import Profile from './components/Profile'
+import PrivateRoute from './components/PrivateRoute'
 import './App.css'
 
 function App() {
@@ -21,11 +22,31 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/quiz" element={<Quiz />} />
-            <Route path="/notes" element={<NotesArchive />} />
-            <Route path="/record" element={<LiveRecord />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/profile" element={<Profile />} />
+            <Route path="/quiz" element={
+              <PrivateRoute>
+                <Quiz />
+              </PrivateRoute>
+            } />
+            <Route path="/notes" element={
+              <PrivateRoute>
+                <NotesArchive />
+              </PrivateRoute>
+            } />
+            <Route path="/record" element={
+              <PrivateRoute>
+                <LiveRecord />
+              </PrivateRoute>
+            } />
+            <Route path="/settings" element={
+              <PrivateRoute>
+                <Settings />
+              </PrivateRoute>
+            } />
+            <Route path="/profile" element={
+              <PrivateRoute>
+                <Profile />
+              </PrivateRoute>
+            } />
           </Routes>
         </div>
         <Footer />

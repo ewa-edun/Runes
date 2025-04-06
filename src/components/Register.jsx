@@ -41,7 +41,7 @@ function Register() {
         displayName: formData.fullName
       });
 
-      navigate('/notes');
+      navigate('/');
     } catch (err) {
       setError('Failed to create account. ' + err.message);
       console.error(err);

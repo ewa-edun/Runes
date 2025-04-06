@@ -15,7 +15,7 @@ function Login() {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate('/notes');
+      navigate('/'); // Redirect to home page after successful login
     } catch (err) {
       setError('Failed to login. Please check your credentials.');
       console.error(err);
