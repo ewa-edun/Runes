@@ -1,10 +1,21 @@
 import { Link } from 'react-router-dom';
 import { auth } from '../config/firebase';
+import { useState, useEffect } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
 import './Header.css';
 import runesLogo from '/runes logo transparent.png';
 
 function Header() {
-  const user = auth.currentUser;
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, []);
 
   return (
     <header className="header">

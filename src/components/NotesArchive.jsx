@@ -16,6 +16,8 @@ function NotesArchive() {
             </select>
             <Link to="/settings" className="btn btn-outline">Settings</Link>
             <Link to="/record" className="btn">New Recording</Link>
+            <Link to="/profile" className="btn">Profile</Link>
+
           </div>
         </div>
 
