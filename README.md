@@ -16,12 +16,7 @@ Runes is a **web app** that serves as a **smart personal learning assistant**. I
 ✅ **Flashcard Mode** – Users can review key concepts **as flashcards**.  
 ✅ **Difficulty Scaling** – Quiz questions adjust in difficulty based on past performance.  
 
-### **3. Progress Tracking & Daily Recaps**  
-✅ **Skill Dashboard** – Tracks **how much you’ve studied & learned** over time.  
-✅ **Daily/Weekly Recaps** – Sends a **summary of notes, quiz results, and progress updates**.  
-✅ **Reminder System** – Users can **set study reminders** based on topics they want to review.  
-
-### **4. Customization & Exporting**  
+### **3. Customization & Exporting**  
 ✅ **Adjust Quiz Settings** – Choose **quiz frequency** (e.g., after every 5 notes).  
 ✅ **Export Notes** – Save notes as **PDF, Markdown, or Google Docs**.  
 
@@ -50,18 +45,13 @@ White ( #ffffff) and Peach ( #FFE5B4) and ( #f6b092 ) colors
 - **Difficulty scaling** (easier questions first, harder if the user improves).  
 - **Track past scores**.  
 
-### **5. Progress Dashboard**  
-- **Graph of study trends** (e.g., “You studied 5 topics this week”).  
-- Breakdown of **quiz accuracy by subject**.  
-- **Personalized study recommendations** based on weak areas.  
-
-### **6. Settings Page**  
+### **5. Settings Page**  
 - Adjust **quiz frequency & difficulty**.  
 - Enable/disable **daily recap emails**.  
 - Export **all notes**.  
 
-### **7. Login/Signup Page**  
-- Google & email-based authentication.  
+### **6. Login/Signup Page**  
+- Email-based authentication.  
 
 ---
 
@@ -78,7 +68,6 @@ White ( #ffffff) and Peach ( #FFE5B4) and ( #f6b092 ) colors
 
 ### **Other Integrations**  
 - **Google Docs API** (for exporting notes).  
-- **Matplotlib/Chart.js** (for progress tracking graphs).  
 
 ---
 
@@ -110,3 +99,15 @@ White ( #ffffff) and Peach ( #FFE5B4) and ( #f6b092 ) colors
 ✅ **No unnecessary complexity** – Focused on core **AI-powered study automation**.  
 ✅ **Useful in real life** – Helps **take notes, review, and track progress**.  
 ✅ **Manageable in 4 days** – No over-engineering (just AI + quiz + storage).  
+
+## Future Additions
+
+ ### **1. Progress Tracking & Daily Recaps**  
+✅ **Skill Dashboard** – Tracks **how much you’ve studied & learned** over time.  
+✅ **Daily/Weekly Recaps** – Sends a **summary of notes, quiz results, and progress updates**.  
+✅ **Reminder System** – Users can **set study reminders** based on topics they want to review.   
+    - **Graph of study trends** (e.g., “You studied 5 topics this week”).  
+    - Breakdown of **quiz accuracy by subject**.  
+    - **Personalized study recommendations** based on weak areas. 
+    - **Matplotlib/Chart.js** (for progress tracking graphs).  
+
