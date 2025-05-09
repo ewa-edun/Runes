@@ -1,113 +1,225 @@
-## **MVP Overview**  
-Runes is a **web app** that serves as a **smart personal learning assistant**. It helps users **capture, organize, and reinforce knowledge** through AI-generated **transcriptions, summaries, quizzes, and progress tracking**.  
+# 🧠 Runes – AI-Powered Learning & Note-Taking Assistant
+
+**Runes** is a smart personal learning assistant designed to help you **capture, organize, and reinforce knowledge** using AI. Whether you're in a lecture, meeting, or deep in a self-study session, Runes transcribes your thoughts, summarizes content, and turns notes into interactive quizzes—keeping your learning flow smooth and productive.
 
 ---
 
-## **Core Features (MVP Scope)**  
+## 🚀 MVP Overview
 
-### **1. AI-Powered Note Capture & Organization**  
-✅ **Live Transcription** – Uses **Whisper API** to convert speech into text in real time.  
-✅ **Smart Summarization** – AI-generated **summaries of long lectures or discussions**.  
-✅ **Auto-Categorization** – Notes are **sorted by subject, date, or custom tags**.  
-✅ **Searchable Archive** – Find past notes quickly.  
-
-### **2. Interactive Learning & Quiz System**  
-✅ **Quiz Generator** – AI auto-creates **mini quizzes** from saved notes.  
-✅ **Flashcard Mode** – Users can review key concepts **as flashcards**.  
-✅ **Difficulty Scaling** – Quiz questions adjust in difficulty based on past performance.  
-
-### **3. Customization & Exporting**  
-✅ **Adjust Quiz Settings** – Choose **quiz frequency** (e.g., after every 5 notes).  
-✅ **Export Notes** – Save notes as **PDF, Markdown, or Google Docs**.  
-
-Color Scheme: 
-White ( #ffffff) and Peach ( #FFE5B4) and ( #f6b092 ) colors
----
-
-## **Pages Needed**  
-
-### **1. Home Page (Landing Page)**  
-- Simple **intro**: “Your AI-powered study assistant.”  
-- **CTA**: “Start Taking Notes Now.”  
-
-### **2. Live Lecture Page**  
-- **Live transcription** via Whisper API.  
-- **Summarization panel** shows AI-generated summaries in real time.  
-- **Start Quiz** button for quick recall.  
-
-### **3. Notes Archive Page**  
-- Displays **past notes** (sorted by **date, topic, or speaker**).  
-- **Search bar** to find specific notes.  
-- **Export** option.  
-
-### **4. Quiz Page**  
-- AI-generated **multiple-choice & flashcard quizzes** based on notes.  
-- **Difficulty scaling** (easier questions first, harder if the user improves).  
-- **Track past scores**.  
-
-### **5. Settings Page**  
-- Adjust **quiz frequency & difficulty**.  
-- Enable/disable **daily recap emails**.  
-- Export **all notes**.  
-
-### **6. Login/Signup Page**  
-- Email-based authentication.  
+**Runes** is a **web application** that:
+- Transcribes live speech into notes using **Whisper API**.
+- Summarizes content via **Gemini** or **OpenAI**.
+- Auto-generates **quizzes and flashcards**.
+- Tracks your **learning progress and insights**.
 
 ---
 
-## **Tech Stack (Web App)**  
+## ✨ Core Features (MVP Scope)
 
-### **Frontend**  
-- **React + Vanilla CSS** (for a clean, responsive UI).  
-- **Redux or Context API** (if state management is needed).  
+### 1. AI-Powered Note Capture & Organization
+- ✅ **Live Transcription** – Real-time voice-to-text using Hugging Face's Whisper API.
+- ✅ **Smart Summarization** – AI-generated summaries of lengthy content.
+- ✅ **Auto-Categorization** – Auto-tag notes by subject, date, or custom labels.
+- ✅ **Searchable Archive** – Retrieve past notes with search & filter tools.
+- ✅ **Auto-Tagging** – Categorize notes by topic using basic NLP techniques.
 
-### **Backend**    
-- **Whisper API** – AI transcription.  
-- **GPT (OpenAI or Local Model) or Gemini** – AI-powered note summarization & quiz generation.  
-- **Firebase or PostgreSQL** – User authentication & data storage.  
+### 2. Interactive Learning System
+- ✅ **Quiz Generator** – Generate short quizzes from notes.
+- ✅ **Flashcard Mode** – Swipe through flashcards for active recall.
+- ✅ **Difficulty Scaling** – AI adjusts quiz complexity based on performance.
 
-### **Other Integrations**  
-- **Google Docs API** (for exporting notes).  
+### 3. Customization & Exporting
+- ✅ **Quiz Settings** – Choose how often and how hard quizzes appear.
+- ✅ **Export Notes** – Download as **PDF, Markdown, or Google Docs**.
+- ✅ **Copy to Clipboard** – Copy raw and summarized notes easily.
 
----
+### 4. Notes & Storage
+- ✅ **Notes Archive** – Save long-form notes, summaries, and quizzes in Supabase.
+- ✅ **Copy Button** – Option to copy both the full notes and summarized versions.
+- ✅ **Upload Support** – Users can upload images (graphs, diagrams, etc.) to Supabase.
 
-## **Documentation Checklist**  
-
-### **1. Project Overview**  
-- Brief on what the app does.  
-- Target audience (students, self-learners, professionals).  
-
-### **2. Installation & Setup**  
-- How to install dependencies (`npm install`).  
-- Running the dev server.  
-- API keys & environment variables.  
-
-### **3. API Documentation**  
-- **/transcribe** – Accepts audio input & returns text.  
-- **/summarize** – AI-generated summary from text.  
-- **/generate_quiz** – Returns a quiz based on input text.  
-- **/save_note** – Saves user’s note to the database.  
-
-### **4. Database Schema**  
-- **Users**: (id, name, email, password)  
-- **Notes**: (id, user_id, text, summary, category, timestamp)  
-- **Quizzes**: (id, note_id, questions, answers, score, date_taken)  
+### 5. User & Settings
+- ✅ **User Auth** – Login/Logout (use Firebase Auth).
+- ✅ **Settings Panel** – Adjust quiz frequency, summarization toggle.
+- ✅ **Export Options** – Export notes to PDF, markdown, or Google Docs.  
 
 ---
 
-### **Why This Works for the Hackathon**  
-✅ **No unnecessary complexity** – Focused on core **AI-powered study automation**.  
-✅ **Useful in real life** – Helps **take notes, review, and track progress**.  
-✅ **Manageable in 4 days** – No over-engineering (just AI + quiz + storage).  
+## 📱 Planned Mobile Expansion (Post-MVP)
+- 🔄 Rewrite frontend using **React Native / Flutter / Kotlin**.
+- 📲 Publish to personal **Google Play Developer Account**.
+- 🔒 Sync user data & authentication via Firebase and Supabase.
+- 💸 Add **subscription plan** for premium features:
+  - Monthly: `$1.99`
+  - Yearly: `$20.99`
 
-## Future Additions
+### Premium Features
+- ✅ **Personalized Dashboard** (Insights per user)
+- ✅ **Daily Recaps & Learning Plans**
+- ✅ **AI Nudges / Smart Reminders**
 
- ### **1. Progress Tracking & Daily Recaps**  
-✅ **Skill Dashboard** – Tracks **how much you’ve studied & learned** over time.  
-✅ **Daily/Weekly Recaps** – Sends a **summary of notes, quiz results, and progress updates**.  
-✅ **Reminder System** – Users can **set study reminders** based on topics they want to review.   
-    - **Graph of study trends** (e.g., “You studied 5 topics this week”).  
-    - Breakdown of **quiz accuracy by subject**.  
-    - **Personalized study recommendations** based on weak areas. 
-    - **Matplotlib/Chart.js** (for progress tracking graphs).  
+---
 
+## 🌟 Future Additions
+
+### Learning Analytics & Daily Recaps
+- ✅ **Skill Dashboard** – Track time spent per topic or skill.
+- ✅ **Daily/Weekly Recaps** – Summarize your learning and quiz activity.
+- ✅ **Reminder System** – Smart nudges for unfinished learning goals.
+- 📈 Visual insights with **Chart.js** or **Matplotlib**:
+  - Study trends over time.
+  - Topic mastery tracking.
+  - Quiz accuracy by subject.
+  - Personalized recommendations for weak areas.
+
+### Media Upload & Integration
+- ✅ **Auto-link media** to note sessions.
+
+### AR Learning Mode (Minimal But Effective)
+- ✅ AR Visuals for Key Topics – Small interactive AR experiences for subjects like science & history (e.g., a rotating 3D solar system).
+- ✅ Gamified Challenges – Small AR-based pop quizzes (e.g., “Tap the planet with the most moons!”).
+
+---
+
+## 🧩 Pages Needed (MVP)
+
+### 1. Home Page
+- Simple overview with CTA: **“Start Taking Notes Now”**.
+
+### 2. Live Lecture Page
+- Real-time transcription + summary view.
+- View Notes, Take Quiz” button.
+
+### 3. Notes Archive Page
+- Filterable & searchable list of past notes.
+- Export/download options.
+
+### 4. Notes Page
+- View full transcription + summary.
+- View media (if any).
+- Copy to clipboard.
+
+### 5. Quiz Page
+- Auto-generated quizzes with difficulty scaling.
+- Flashcard mode + score history.
+
+### 6. Settings Page
+- Adjust quiz behavior.
+- Toggle recaps/reminders.
+- Export all user data.
+
+### 7. Login/Signup Page
+- Email-based authentication via Supabase.
+
+---
+
+## 🛠 Tech Stack
+
+### Frontend
+- **React + Vanilla CSS**.
+- **React Router** – For navigation.
+- **Context API or Redux** – For global state (if needed).
+
+### Backend / AI
+- **Hugging Face Whisper API** – Live transcription.
+- **Gemini API / OpenAI API** – Summarization + quiz generation.
+
+### Database & Auth
+- **Firebase** – Auth, user settings, notes, quizzes, summaries, user metadata..
+- **Supabase** – Images.
+
+### Export & Docs
+- **Google Docs API** – Export to Google Docs.
+- **jsPDF / html2pdf** – For PDF generation.
+
+---
+
+## 🧪 API Endpoints
+
+| Endpoint         | Description                                  |
+|------------------|----------------------------------------------|
+| `/transcribe`    | Accepts audio input → returns text.          |
+| `/summarize`     | Takes text → returns summarized version.     |
+| `/generate_quiz` | Input text → returns MCQs/flashcards.        |
+| `/save_note`     | Saves note + summary + tags to DB.           |
+
+---
+
+## 🗃️ Database Schema
+
+### Users
+| Field         | Type     | Description                  |
+|---------------|----------|------------------------------|
+| `id`          | UUID     | Unique user ID               |
+| `email`       | String   | User email                   |
+| `name`        | String   | User's display name          |
+| `created_at`  | Timestamp| Account creation date        |
+| `usage_freq`  | Number   | Tracks app usage frequency   |
+| `settings`    | JSON     | Quiz freq, preferences       |
+
+### Notes
+| Field         | Type     | Description                  |
+|---------------|----------|------------------------------|
+| `id`          | UUID     | Unique note ID               |
+| `user_id`     | UUID     | Linked user ID               |
+| `text`        | Text     | Full transcription           |
+| `summary`     | Text     | AI summary of the note       |
+| `tags`        | Array    | Subject or custom labels     |
+| `timestamp`   | Timestamp| When note was created        |
+
+### Quizzes
+| Field         | Type     | Description                  |
+|---------------|----------|------------------------------|
+| `id`          | UUID     | Unique quiz ID               |
+| `note_id`     | UUID     | Linked to a note             |
+| `questions`   | JSON     | Array of MCQs/flashcards     |
+| `score`       | Number   | User score                   |
+| `date_taken`  | Timestamp| When quiz was taken          |
+
+### Media (Optional)
+| Field         | Type     | Description                  |
+|---------------|----------|------------------------------|
+| `id`          | UUID     | Unique media ID              |
+| `note_id`     | UUID     | Linked to a note             |
+| `image_url`   | String   | Supabase file URL            |
+
+---
+
+## 🧠 Target Users
+🧑‍🎓 Students & lifelong learners
+🧑‍💻 Developers & tech enthusiasts
+🧠 Professionals attending lectures, meetings, or conferences
+
+## 📦 Installation & Setup
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/ewa-edun/Runes.git
+   cd Runes ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Set up environment variables in .env file:
+   ```bash
+   cp .env.example .env
+   ```
+
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+5. Access the app at `http://localhost:5173`.
+
+---
+
+## 📚 License
+
+MIT License 
+
+## 🤝 Contributing
+Want to help improve Runes or contribute AR/AI modules in the future?
+Feel free to open a PR or contact me directly!
