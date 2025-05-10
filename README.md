@@ -123,6 +123,7 @@
 ### Backend / AI
 - **Hugging Face Whisper API** – Live transcription.
 - **Gemini API / OpenAI API** – Summarization + quiz generation.
+- **Mixkit** – Sound effects for quiz interactions.
 
 ### Database & Auth
 - **Firebase** – Auth, user settings, notes, quizzes, summaries, user metadata..

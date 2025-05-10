@@ -136,15 +136,247 @@
   margin-top: 2rem;
 }
 
-.image-preview {
+.upload-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.upload-error {
+  color: #ff4444;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.retry-btn {
+  background-color: var(--peach-dark);
+  color: white;
+  border: none;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 100px;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.retry-btn:hover:not(:disabled) {
+  background-color: var(--peach-light);
+}
+
+.retry-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.retry-btn .spinner {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
+.retry-count {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner-small {
+  width: 16px;
+  height: 16px;
+  border-width: 1px;
+}
+
+.btn-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-upload.uploading {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background-color: var(--peach-light);
+}
+
+.btn-upload-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
   margin-top: 1rem;
+}
+
+.image-preview {
+  position: relative;
   border-radius: 8px;
   overflow: hidden;
+  aspect-ratio: 16/9;
+  background-color: #f5f5f5;
 }
 
 .image-preview img {
-  max-width: 100%;
-  height: auto;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.3s ease;
+}
+
+.images-loading,
+.images-error,
+.no-images {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  background: #f5f5f5;
+  border-radius: 8px;
+  text-align: center;
+  color: #666;
+  margin-top: 1rem;
+  min-height: 200px;
+}
+
+.images-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  background: #f5f5f5;
+  border-radius: 8px;
+  text-align: center;
+  color: #666;
+  margin-top: 1rem;
+  min-height: 200px;
+}
+
+.images-loading .spinner {
+  width: 32px;
+  height: 32px;
+  border-width: 3px;
+}
+
+.images-loading span {
+  font-size: 1rem;
+  opacity: 0.8;
+}
+
+.images-error {
+  background: rgba(255, 68, 68, 0.1);
+  color: #ff4444;
+}
+
+.no-images .icon {
+  width: 48px;
+  height: 48px;
+  fill: currentColor;
+  opacity: 0.5;
+}
+
+.images-error .icon {
+  width: 32px;
+  height: 32px;
+  fill: currentColor;
+}
+
+.image-loading,
+.image-error {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.image-error {
+  color: #ff4444;
+  text-align: center;
+  padding: 1rem;
+  background: rgba(255, 68, 68, 0.1);
+}
+
+.image-error .icon {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.image-delete-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(255, 68, 68, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.image-preview:hover .image-delete-btn {
+  opacity: 1;
+}
+
+.image-delete-btn .icon {
+  width: 20px;
+  height: 20px;
+  fill: white;
+}
+
+.image-delete-btn:hover {
+  background: rgba(255, 68, 68, 1);
+}
+
+.image-delete-btn.deleting {
+  opacity: 1 !important;
+  background: rgba(0, 0, 0, 0.5);
+  cursor: not-allowed;
 }
 
 .delete-modal {
@@ -197,6 +429,144 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.error-boundary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  background: #f5f5f5;
+  border-radius: 8px;
+  text-align: center;
+  color: #ff4444;
+  margin: 2rem auto;
+  max-width: 600px;
+}
+
+.error-boundary .icon {
+  width: 48px;
+  height: 48px;
+  fill: currentColor;
+}
+
+.error-boundary h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.25rem;
+}
+
+.error-boundary p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.error-boundary .error-details {
+  width: 100%;
+  margin-top: 1rem;
+  text-align: left;
+}
+
+.error-boundary .error-details summary {
+  cursor: pointer;
+  color: #666;
+  font-size: 0.9rem;
+  padding: 0.5rem;
+  background: #eee;
+  border-radius: 4px;
+}
+
+.error-boundary .error-details pre {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #eee;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-size: 0.8rem;
+  color: #333;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.error-boundary .error-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.error-boundary .retry-btn {
+  background-color: var(--peach-dark);
+  color: white;
+}
+
+.error-boundary .retry-btn:hover:not(:disabled) {
+  background-color: var(--peach-light);
+}
+
+.error-boundary .retry-btn.retrying,
+.error-boundary .btn-outline.navigating {
+  opacity: 0.7;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.error-boundary .retry-btn.retrying {
+  background-color: var(--peach-light);
+}
+
+.error-boundary .btn-outline.navigating {
+  background-color: #eee;
+}
+
+.error-boundary .error-actions button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 8px 16px;
+  min-width: 120px;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.error-boundary .retry-btn {
+  background-color: var(--peach-dark);
+  color: white;
+}
+
+.error-boundary .retry-btn:hover:not(:disabled) {
+  background-color: var(--peach-light);
+}
+
+.error-boundary .retry-btn.retrying,
+.error-boundary .btn-outline.navigating {
+  opacity: 0.7;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.error-boundary .retry-btn.retrying {
+  background-color: var(--peach-light);
+}
+
+.error-boundary .btn-outline.navigating {
+  background-color: #eee;
+}
+
+.error-boundary .error-actions button .spinner {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
+.error-boundary .error-actions button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 @media (max-width: 768px) {

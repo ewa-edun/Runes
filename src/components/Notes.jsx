@@ -1,15 +1,28 @@
 import { useParams, Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../config/supabase';
 import './Notes.css';
+import ErrorBoundary from './ErrorBoundary';
 
 function Notes() {
   const { noteId } = useParams();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [tags, setTags] = useState(['AI', 'Technology']); // Example tags
+  const [images, setImages] = useState([]); // Store multiple images
   const [newTag, setNewTag] = useState('');
   const [copySuccess, setCopySuccess] = useState('');
+  const [copyTimeoutId, setCopyTimeoutId] = useState(null);
+  const [tags, setTags] = useState(['AI', 'Technology']); // Example tags
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const [deletingImages, setDeletingImages] = useState(new Set());
+  const [deleteError, setDeleteError] = useState('');
+  const [deleteErrorTimeoutId] = useState(null);
+  const [loadingImages, setLoadingImages] = useState(new Map());
+  const [imageRetries, setImageRetries] = useState(new Map());
+  const [isLoadingImages, setIsLoadingImages] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [retryLoadingTimeoutId, setRetryLoadingTimeoutId] = useState(null);
+  const MAX_RETRIES = 3;
 
   // Example note data (in a real app, this would come from a database)
   const note = {
@@ -43,37 +56,200 @@ function Notes() {
     images: [] // Will store uploaded image URLs
   };
 
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (deleteErrorTimeoutId) {
+        clearTimeout(deleteErrorTimeoutId);
+      }
+      if (copyTimeoutId) {
+        clearTimeout(copyTimeoutId);
+      }
+      if (retryLoadingTimeoutId) {
+        clearTimeout(retryLoadingTimeoutId);
+      }
+    };
+  }, [deleteErrorTimeoutId, copyTimeoutId, retryLoadingTimeoutId]);
+
+  useEffect(() => {
+    const loadImages = async () => {
+      try {
+        setIsLoadingImages(true);
+        setLoadError('');
+
+        // List all files in the note's folder
+        const { data: files, error } = await supabase.storage
+          .from('note-images')  // Fixed bucket name
+          .list(`${noteId}`);
+
+        if (error) throw error;
+
+        if (files && files.length > 0) {
+          const imageUrls = files.map(file => {
+            const { data: { publicUrl } } = supabase.storage
+              .from('note-images')  // Fixed bucket name
+              .getPublicUrl(`${noteId}/${file.name}`);
+            return publicUrl;
+          });
+
+          setImages(imageUrls);
+        }
+      } catch (error) {
+        console.error('Error loading images:', error);
+        setLoadError('Failed to load images. Please try again later.');
+      } finally {
+        setIsLoadingImages(false);
+      }
+    };
+
+    loadImages();
+  }, [noteId]);
+
   const handleImageUpload = async (e) => {
     try {
       const file = e.target.files[0];
       if (!file) return;
+
+      // Reset error state
+      setUploadError('');
+      setIsUploading(true);
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error('File size must be less than 5MB');
+      }
+
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+      if (!validTypes.includes(file.type)) {
+        throw new Error('File must be JPEG, PNG, or GIF');
+      }
 
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
       const filePath = `${noteId}/${fileName}`;
 
       const { error } = await supabase.storage
-        .from('note-images')
+        .from('note-images')  // Fixed bucket name
         .upload(filePath, file);
 
       if (error) throw error;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('note-images')
+        .from('note-images')  // Fixed bucket name
         .getPublicUrl(filePath);
 
-      setSelectedImage(publicUrl);
-      // Here you would update the note in your database with the new image URL
+      setImages(prevImages => [...prevImages, publicUrl]);
     } catch (error) {
       console.error('Error uploading image:', error);
+      setUploadError(error.message || 'Failed to upload image');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeleteImage = async (imageUrl, index) => {
+    try {
+      setDeletingImages(prev => new Set([...prev, index]));
+      setDeleteError('');
+
+      // Extract the file path from the URL
+      const urlParts = imageUrl.split('/');
+      const filePath = `${noteId}/${urlParts[urlParts.length - 1]}`;
+
+      // Delete from Supabase storage
+      const { error } = await supabase.storage
+        .from('note-images')  // Fixed bucket name
+        .remove([filePath]);
+
+      if (error) throw error;
+
+      // Remove from UI if deletion was successful
+      setImages(prevImages => prevImages.filter((_, i) => i !== index));
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      setDeleteError('Failed to delete image. Please try again.');
+      setTimeout(() => setDeleteError(''), 3000);
+    } finally {
+      setDeletingImages(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(index);
+        return newSet;
+      });
+    }
+  };
+
+  const handleImageLoad = (index) => {
+    setLoadingImages(prev => {
+      const newMap = new Map(prev);
+      newMap.delete(index);
+      return newMap;
+    });
+    setImageRetries(prev => {
+      const newMap = new Map(prev);
+      newMap.delete(index);
+      return newMap;
+    });
+  };
+
+  const handleImageError = (index, imageUrl) => {
+    const currentRetries = imageRetries.get(index) || 0;
+    if (currentRetries < MAX_RETRIES) {
+      // Retry loading the image
+      setImageRetries(prev => {
+        const newMap = new Map(prev);
+        newMap.set(index, currentRetries + 1);
+        return newMap;
+      });
+      // Force reload the image by adding a cache-busting parameter
+      const img = document.querySelector(`#image-${index}`);
+      if (img) {
+        img.src = `${imageUrl}?retry=${currentRetries + 1}`;
+      }
+    } else {
+      setLoadingImages(prev => {
+        const newMap = new Map(prev);
+        newMap.set(index, 'error');
+        return newMap;
+      });
+    }
+  };
+
+  const retryLoadImage = (index, imageUrl) => {
+    setLoadingImages(prev => {
+      const newMap = new Map(prev);
+      newMap.delete(index);
+      return newMap;
+    });
+    setImageRetries(prev => {
+      const newMap = new Map(prev);
+      newMap.delete(index);
+      return newMap;
+    });
+    // Force reload the image
+    const img = document.querySelector(`#image-${index}`);
+    if (img) {
+      img.src = `${imageUrl}?retry=${Date.now()}`;
     }
   };
 
   const copyToClipboard = async (text, type) => {
     try {
+      // Clear any existing timeout
+      if (copyTimeoutId) {
+        clearTimeout(copyTimeoutId);
+        setCopyTimeoutId(null);
+      }
+
       await navigator.clipboard.writeText(text);
       setCopySuccess(`${type} copied!`);
-      setTimeout(() => setCopySuccess(''), 2000);
+      
+      // Set new timeout and store its ID
+      const timeoutId = setTimeout(() => {
+        setCopySuccess('');
+        setCopyTimeoutId(null);
+      }, 2000);
+      setCopyTimeoutId(timeoutId);
     } catch (err) {
       console.error('Failed to copy:', err);
     }
@@ -95,6 +271,26 @@ function Notes() {
     // Here you would implement the actual delete functionality
     console.log(`Deleting ${type}`);
     setShowDeleteConfirm(false);
+  };
+
+  const handleRetryLoading = () => {
+    // Clear any existing timeout
+    if (retryLoadingTimeoutId) {
+      clearTimeout(retryLoadingTimeoutId);
+      setRetryLoadingTimeoutId(null);
+    }
+
+    setIsLoadingImages(true);
+    setLoadError('');
+
+    // Set a timeout to prevent infinite loading state
+    const timeoutId = setTimeout(() => {
+      setIsLoadingImages(false);
+      setLoadError('Loading timed out. Please try again.');
+      setRetryLoadingTimeoutId(null);
+    }, 10000); // 10 second timeout
+
+    setRetryLoadingTimeoutId(timeoutId);
   };
 
   return (
@@ -166,20 +362,113 @@ function Notes() {
             <div className="image-section">
               <input
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/gif"
                 onChange={handleImageUpload}
                 style={{ display: 'none' }}
                 id="image-upload"
+                disabled={isUploading}
               />
-              <label htmlFor="image-upload" className="btn">
-                <svg viewBox="0 0 24 24" className="icon">
-                  <path d="M19 7v2.99s-1.99.01-2 0V7h-3s.01-1.99 0-2h3V2h2v3h3v2h-3zm-3 4V8h-3V5H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-8h-3zM5 19l3-4 2 3 3-4 4 5H5z"/>
-                </svg>
-                Add Image
-              </label>
-              {selectedImage && (
-                <div className="image-preview">
-                  <img src={selectedImage} alt="Uploaded content" />
+              <div className="upload-container">
+                <label htmlFor="image-upload" className={`btn btn-upload ${isUploading ? 'uploading' : ''}`}>
+                  <span className="btn-upload-content">
+                    {isUploading ? (
+                      <div className="spinner"></div>
+                    ) : (
+                      <svg viewBox="0 0 24 24" className="icon">
+                        <path d="M19 7v2.99s-1.99.01-2 0V7h-3s.01-1.99 0-2h3V2h2v3h3v2h-3zm-3 4V8h-3V5H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-8h-3zM5 19l3-4 2 3 3-4 4 5H5z"/>
+                      </svg>
+                    )}
+                    {isUploading ? 'Uploading...' : 'Add Image'}
+                  </span>
+                </label>
+                {uploadError && <div className="upload-error">{uploadError}</div>}
+                {deleteError && <div className="upload-error">{deleteError}</div>}
+              </div>
+
+              {isLoadingImages ? (
+                <div className="images-loading">
+                  <div className="spinner"></div>
+                  <span>Loading images...</span>
+                </div>
+              ) : loadError ? (
+                <div className="images-error">
+                  <svg viewBox="0 0 24 24" className="icon">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                  </svg>
+                  <span>{loadError}</span>
+                  <button 
+                    className="btn btn-small retry-btn"
+                    onClick={handleRetryLoading}
+                    disabled={isLoadingImages}
+                  >
+                    {isLoadingImages ? (
+                      <>
+                        <div className="spinner spinner-small"></div>
+                        <span>Retrying...</span>
+                      </>
+                    ) : (
+                      'Retry Loading'
+                    )}
+                  </button>
+                </div>
+              ) : images.length > 0 ? (
+                <div className="images-grid">
+                  {images.map((imageUrl, index) => (
+                    <div key={index} className="image-preview">
+                      <img 
+                        id={`image-${index}`}
+                        src={imageUrl} 
+                        alt={`Note image ${index + 1}`}
+                        onLoad={() => handleImageLoad(index)}
+                        onError={() => handleImageError(index, imageUrl)}
+                        style={{ opacity: loadingImages.get(index) === undefined ? 0 : 1 }}
+                      />
+                      {loadingImages.get(index) === 'error' ? (
+                        <div className="image-error">
+                          <svg viewBox="0 0 24 24" className="icon">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                          </svg>
+                          <span>Failed to load image</span>
+                          <button 
+                            className="btn btn-small retry-btn"
+                            onClick={() => retryLoadImage(index, imageUrl)}
+                          >
+                            Retry
+                          </button>
+                        </div>
+                      ) : loadingImages.get(index) === undefined && (
+                        <div className="image-loading">
+                          <div className="spinner"></div>
+                          {imageRetries.get(index) > 0 && (
+                            <span className="retry-count">
+                              Retry {imageRetries.get(index)}/{MAX_RETRIES}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      <button 
+                        className={`image-delete-btn ${deletingImages.has(index) ? 'deleting' : ''}`}
+                        onClick={() => handleDeleteImage(imageUrl, index)}
+                        disabled={deletingImages.has(index)}
+                        title="Delete image"
+                      >
+                        {deletingImages.has(index) ? (
+                          <div className="spinner spinner-small"></div>
+                        ) : (
+                          <svg viewBox="0 0 24 24" className="icon">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="no-images">
+                  <svg viewBox="0 0 24 24" className="icon">
+                    <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                  </svg>
+                  <span>No images uploaded yet</span>
                 </div>
               )}
             </div>
