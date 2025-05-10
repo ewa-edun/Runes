@@ -121,7 +121,7 @@
 - **Context API or Redux** – For global state (if needed).
 
 ### Backend / AI
-- **Hugging Face Whisper API** – Live transcription.
+- **Hugging Face Whisper API/Vosk** – Live transcription.
 - **Gemini API / OpenAI API** – Summarization + quiz generation.
 - **Mixkit** – Sound effects for quiz interactions.
 
