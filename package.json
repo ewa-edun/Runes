@@ -13,11 +13,14 @@
     "@supabase/supabase-js": "^2.49.4",
     "dom": "^0.0.3",
     "firebase": "^11.6.0",
+    "openai": "^4.98.0",
     "react": "^19.1.0",
+    "react-audio-voice-recorder": "^2.2.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.5.0",
     "router": "^2.2.0",
-    "runes": "file:"
+    "runes": "file:",
+    "vosk-browser": "^0.0.8"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
