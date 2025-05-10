@@ -1,7 +1,13 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import './NotesArchive.css'
 
 function NotesArchive() {
+  const navigate = useNavigate();
+
+  const handleNoteClick = (noteId) => {
+    navigate(`/notes/${noteId}`);
+  };
+
   return (
     <div className="notes-archive">
       <div className="container">
@@ -17,13 +23,12 @@ function NotesArchive() {
             <Link to="/settings" className="btn btn-outline">Settings</Link>
             <Link to="/record" className="btn">New Recording</Link>
             <Link to="/profile" className="btn">Profile</Link>
-
           </div>
         </div>
 
         <div className="notes-grid">
           {/* Example note cards */}
-          <div className="note-card card">
+          <div className="note-card card" onClick={() => handleNoteClick('1')} style={{ cursor: 'pointer' }}>
             <div className="note-header">
               <h3>Introduction to AI</h3>
               <span className="note-date">Jan 15, 2024</span>
@@ -31,11 +36,11 @@ function NotesArchive() {
             <p className="note-preview">Understanding the basics of artificial intelligence and its applications...</p>
             <div className="note-footer">
               <span className="note-topic">Topic: AI</span>
-              <Link to="/quiz" className="btn">Take Quiz</Link>
+              <Link to="/quiz" className="btn" onClick={(e) => e.stopPropagation()}>Take Quiz</Link>
             </div>
           </div>
 
-          <div className="note-card card">
+          <div className="note-card card" onClick={() => handleNoteClick('2')} style={{ cursor: 'pointer' }}>
             <div className="note-header">
               <h3>Machine Learning Basics</h3>
               <span className="note-date">Jan 16, 2024</span>
@@ -43,7 +48,7 @@ function NotesArchive() {
             <p className="note-preview">Exploring fundamental concepts of machine learning...</p>
             <div className="note-footer">
               <span className="note-topic">Topic: ML</span>
-              <Link to="/quiz" className="btn">Take Quiz</Link>
+              <Link to="/quiz" className="btn" onClick={(e) => e.stopPropagation()}>Take Quiz</Link>
             </div>
           </div>
         </div>

@@ -6,6 +6,7 @@ import Login from './components/Login'
 import Register from './components/Register'
 import Quiz from './components/Quiz'
 import NotesArchive from './components/NotesArchive'
+import Notes from './components/Notes'
 import LiveRecord from './components/LiveRecord'
 import Settings from './components/Settings'
 import Profile from './components/Profile'
@@ -30,6 +31,11 @@ function App() {
             <Route path="/notes" element={
               <PrivateRoute>
                 <NotesArchive />
+              </PrivateRoute>
+            } />
+            <Route path="/notes/:noteId" element={
+              <PrivateRoute>
+                <Notes />
               </PrivateRoute>
             } />
             <Route path="/record" element={

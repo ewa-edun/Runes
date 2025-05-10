@@ -9,7 +9,7 @@ function Home() {
     <div className="home">
       <div className="container">
         <div className="hero">
-          <h1>Your AI-powered study assistant</h1>
+          <h1>Capture thoughts. Summon runes. Learn smarter.</h1>
           <p>Capture, organize, and reinforce knowledge through AI-generated transcriptions, summaries, and quizzes.</p>
           <div className="hero-buttons">
             {user ? (
