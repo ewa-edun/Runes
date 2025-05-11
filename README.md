@@ -72,9 +72,6 @@
   - Quiz accuracy by subject.
   - Personalized recommendations for weak areas.
 
-### Media Upload & Integration
-- ✅ **Auto-link media** to note sessions.
-
 ### AR Learning Mode (Minimal But Effective)
 - ✅ AR Visuals for Key Topics – Small interactive AR experiences for subjects like science & history (e.g., a rotating 3D solar system).
 - ✅ Gamified Challenges – Small AR-based pop quizzes (e.g., “Tap the planet with the most moons!”).
@@ -92,12 +89,12 @@
 
 ### 3. Notes Archive Page
 - Filterable & searchable list of past notes.
-- Export/download options.
 
 ### 4. Notes Page
 - View full transcription + summary.
 - View media (if any).
 - Copy to clipboard.
+- Export/download options.
 
 ### 5. Quiz Page
 - Auto-generated quizzes with difficulty scaling.
@@ -109,7 +106,7 @@
 - Export all user data.
 
 ### 7. Login/Signup Page
-- Email-based authentication via Supabase.
+- Email-based authentication via Firebase.
 
 ---
 
@@ -135,55 +132,6 @@
 
 ---
 https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API/Using_the_Web_Speech_API
-
-## 🧪 API Endpoints
-
-| Endpoint         | Description                                  |
-|------------------|----------------------------------------------|
-| `/transcribe`    | Accepts audio input → returns text.          |
-| `/summarize`     | Takes text → returns summarized version.     |
-| `/generate_quiz` | Input text → returns MCQs/flashcards.        |
-| `/save_note`     | Saves note + summary + tags to DB.           |
-
----
-
-## 🗃️ Database Schema
-
-### Users
-| Field         | Type     | Description                  |
-|---------------|----------|------------------------------|
-| `id`          | UUID     | Unique user ID               |
-| `email`       | String   | User email                   |
-| `name`        | String   | User's display name          |
-| `created_at`  | Timestamp| Account creation date        |
-| `usage_freq`  | Number   | Tracks app usage frequency   |
-| `settings`    | JSON     | Quiz freq, preferences       |
-
-### Notes
-| Field         | Type     | Description                  |
-|---------------|----------|------------------------------|
-| `id`          | UUID     | Unique note ID               |
-| `user_id`     | UUID     | Linked user ID               |
-| `text`        | Text     | Full transcription           |
-| `summary`     | Text     | AI summary of the note       |
-| `tags`        | Array    | Subject or custom labels     |
-| `timestamp`   | Timestamp| When note was created        |
-
-### Quizzes
-| Field         | Type     | Description                  |
-|---------------|----------|------------------------------|
-| `id`          | UUID     | Unique quiz ID               |
-| `note_id`     | UUID     | Linked to a note             |
-| `questions`   | JSON     | Array of MCQs/flashcards     |
-| `score`       | Number   | User score                   |
-| `date_taken`  | Timestamp| When quiz was taken          |
-
-### Media (Optional)
-| Field         | Type     | Description                  |
-|---------------|----------|------------------------------|
-| `id`          | UUID     | Unique media ID              |
-| `note_id`     | UUID     | Linked to a note             |
-| `image_url`   | String   | Supabase file URL            |
 
 ---
 

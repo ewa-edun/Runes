@@ -24,7 +24,7 @@ function Notes() {
   const [retryLoadingTimeoutId, setRetryLoadingTimeoutId] = useState(null);
   const MAX_RETRIES = 3;
 
-  // Example note data (in a real app, this would come from a database)
+  // Example note data (i'll link it to the database)
   const note = {
     id: noteId,
     title: 'Introduction to AI',
@@ -79,7 +79,7 @@ function Notes() {
 
         // List all files in the note's folder
         const { data: files, error } = await supabase.storage
-          .from('note-images')  // Fixed bucket name
+          .from('note-images')
           .list(`${noteId}`);
 
         if (error) throw error;
@@ -87,7 +87,7 @@ function Notes() {
         if (files && files.length > 0) {
           const imageUrls = files.map(file => {
             const { data: { publicUrl } } = supabase.storage
-              .from('note-images')  // Fixed bucket name
+              .from('note-images')
               .getPublicUrl(`${noteId}/${file.name}`);
             return publicUrl;
           });
@@ -130,13 +130,13 @@ function Notes() {
       const filePath = `${noteId}/${fileName}`;
 
       const { error } = await supabase.storage
-        .from('note-images')  // Fixed bucket name
+        .from('note-images')
         .upload(filePath, file);
 
       if (error) throw error;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('note-images')  // Fixed bucket name
+        .from('note-images')
         .getPublicUrl(filePath);
 
       setImages(prevImages => [...prevImages, publicUrl]);
@@ -159,7 +159,7 @@ function Notes() {
 
       // Delete from Supabase storage
       const { error } = await supabase.storage
-        .from('note-images')  // Fixed bucket name
+        .from('note-images')
         .remove([filePath]);
 
       if (error) throw error;
