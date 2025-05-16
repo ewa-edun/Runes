@@ -16,7 +16,6 @@ function Notes() {
   const [note, setNote] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [_saving, setSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
@@ -31,6 +30,10 @@ function Notes() {
   });
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [copySuccess, setCopySuccess] = useState('');
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportFormat, setExportFormat] = useState('pdf');
+  const [saving, setSaving] = useState(false);
+  const [settings, setSettings] = useState({ export_method: 'pdf' });
   const [tags, setTags] = useState([]);
   const [newTag, setNewTag] = useState('');
   const [images, setImages] = useState([]);
@@ -100,20 +103,42 @@ function Notes() {
       setIsLoadingImages(true);
       setLoadError('');
       
+      // List all files in the note-images bucket
       const { data: files, error } = await supabase.storage
         .from('note-images')
-        .list(`${id}`);
+        .list();
 
       if (error) throw error;
 
       if (files && files.length > 0) {
-        const imageUrls = files.map(file => {
-          const { data: { publicUrl } } = supabase.storage
-            .from('note-images')
-            .getPublicUrl(`${id}/${file.name}`);
-          return publicUrl;
-        });
-        setImages(imageUrls);
+        // Filter files that belong to this note
+        const noteFiles = files.filter(file => file.name.startsWith(id) || file.name.endsWith('.jpg') || file.name.endsWith('.png') || file.name.endsWith('.jpeg') || file.name.endsWith('.gif'));
+        
+        const imageUrls = [];
+        
+        // Get public URLs for each file
+        for (const file of noteFiles) {
+          try {
+            const { data: { publicUrl } } = supabase.storage
+              .from('note-images')
+              .getPublicUrl(file.name);
+              
+            // Verify the image exists and is accessible
+            const img = new Image();
+            await new Promise((resolve) => {
+              img.onload = () => {
+                imageUrls.push(publicUrl);
+                resolve();
+              };
+              img.onerror = () => resolve();
+              img.src = publicUrl;
+            });
+          } catch (err) {
+            console.error('Error processing image:', file.name, err);
+          }
+        }
+        
+        setImages(prev => [...new Set([...prev, ...imageUrls])]);
       } else {
         setImages([]);
       }
@@ -126,6 +151,47 @@ function Notes() {
   }, []);
 
   // Main data loading effect
+  // Load settings from localStorage
+  useEffect(() => {
+    const savedSettings = localStorage.getItem('settings');
+    if (savedSettings) {
+      try {
+        const parsedSettings = JSON.parse(savedSettings);
+        setSettings(parsedSettings);
+        setExportFormat(parsedSettings.export_method || 'pdf');
+      } catch (error) {
+        console.error('Error parsing settings:', error);
+      }
+    }
+  }, []);
+
+  // Save export method to settings when it changes
+  useEffect(() => {
+    // Only update if the export method has actually changed
+    if (settings.export_method !== exportFormat) {
+      const newSettings = { ...settings, export_method: exportFormat };
+      setSettings(newSettings);
+      localStorage.setItem('settings', JSON.stringify(newSettings));
+    }
+  }, [exportFormat, settings]); 
+
+  // Load settings on mount
+  useEffect(() => {
+    const savedSettings = localStorage.getItem('settings');
+    if (savedSettings) {
+      try {
+        const parsedSettings = JSON.parse(savedSettings);
+        setSettings(parsedSettings);
+        // Only update export format if it's different from current
+        if (parsedSettings.export_method && parsedSettings.export_method !== exportFormat) {
+          setExportFormat(parsedSettings.export_method);
+        }
+      } catch (error) {
+        console.error('Error parsing settings:', error);
+      }
+    }
+  }, [exportFormat]);
+
   useEffect(() => {
     const loadNoteData = async () => {
       if (!noteId) {
@@ -211,8 +277,8 @@ function Notes() {
       }
 
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `${noteId}/${fileName}`;
+      const fileName = `${noteId}_${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
 
       const { error } = await supabase.storage
         .from('note-images')
@@ -404,14 +470,106 @@ function Notes() {
 
   const handleAddTag = (e) => {
     e.preventDefault();
-    if (newTag.trim() && !tags.includes(newTag.trim())) {
-      setTags([...tags, newTag.trim()]);
+    const trimmedTag = newTag.trim();
+    if (trimmedTag && !tags.includes(trimmedTag)) {
+      const updatedTags = [...tags, trimmedTag];
+      setTags(updatedTags);
+      setFormData(prev => ({
+        ...prev,
+        tags: updatedTags.join(', ')
+      }));
       setNewTag('');
+      
+      // Update the note in the database
+      if (noteId) {
+        updateNote(noteId, {
+          ...formData,
+          tags: updatedTags
+        }).catch(console.error);
+      }
     }
   };
 
-  const handleDeleteTag = (tagToDelete) => {
-    setTags(tags.filter(tag => tag !== tagToDelete));
+  const handleDeleteTag = async (tagToDelete) => {
+    const updatedTags = tags.filter(tag => tag !== tagToDelete);
+    setTags(updatedTags);
+    setFormData(prev => ({
+      ...prev,
+      tags: updatedTags.join(', ')
+    }));
+    
+    // Update the note in the database
+    if (noteId) {
+      try {
+        await updateNote(noteId, {
+          ...formData,
+          tags: updatedTags
+        });
+      } catch (error) {
+        console.error('Error updating tags:', error);
+        // Revert UI if update fails
+        setTags(tags);
+      }
+    }
+  };
+
+  const handleExport = async (format) => {
+    try {
+      setSaving(true);
+      
+      // In a real implementation, you would generate the export here
+      // For now, we'll just show a success message
+      console.log(`Exporting to ${format}`);
+      
+      // Example of what the export might look like
+      let content = '';
+      let mimeType = '';
+      let fileExtension = '';
+      
+      switch(format) {
+        case 'pdf':
+          content = `PDF Export for: ${note?.title}\n\n${note?.note}`;
+          mimeType = 'application/pdf';
+          fileExtension = 'pdf';
+          // In a real app, you would use a PDF generation library here
+          break;
+          
+        case 'markdown':
+          content = `# ${note?.title}\n\n${note?.note}`;
+          mimeType = 'text/markdown';
+          fileExtension = 'md';
+          break;
+          
+        case 'google-docs':
+          // This would typically open a new window/tab with Google Docs
+          window.open(`https://docs.google.com/document/create?title=${encodeURIComponent(note?.title || 'Untitled')}`, '_blank');
+          setShowExportModal(false);
+          return;
+          
+        default:
+          throw new Error('Unsupported export format');
+      }
+      
+      // For PDF and Markdown, create a download
+      if (format !== 'google-docs') {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${note?.title || 'note'}.${fileExtension}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+      
+      setShowExportModal(false);
+    } catch (error) {
+      console.error('Export failed:', error);
+      setError('Failed to export note. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
 
@@ -481,6 +639,91 @@ function Notes() {
     });
   };
   
+  // Export modal component
+  const ExportModal = ({ onClose, onExport }) => (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <h3>Export Note</h3>
+        <p>Choose export format:</p>
+        <div className="export-options">
+          <div 
+            className={`export-option ${exportFormat === 'pdf' ? 'selected' : ''}`}
+            onClick={() => setExportFormat('pdf')}
+          >
+            <svg viewBox="0 0 24 24" className="icon">
+              <path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14H8v-7h2v7zm-1-9c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm9 9h-1.5v-2.86c0-1.31-1.02-2.5-2.5-2.5s-2.5 1.19-2.5 2.5V17h-1.5v-7h1.5v1.5c.55-1.22 1.76-2 3-2 1.93 0 3.5 1.57 3.5 3.5V17z"/>
+            </svg>
+            <span>PDF</span>
+            {exportFormat === 'pdf' && (
+              <div className="export-check">
+                <svg viewBox="0 0 24 24" className="check-icon">
+                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                </svg>
+              </div>
+            )}
+          </div>
+          
+          <div 
+            className={`export-option ${exportFormat === 'markdown' ? 'selected' : ''}`}
+            onClick={() => setExportFormat('markdown')}
+          >
+            <svg viewBox="0 0 24 24" className="icon">
+              <path d="M20.56 18H3.44C2.65 18 2 17.33 2 16.5v-9C2 6.67 2.65 6 3.44 6h17.12c.79 0 1.44.67 1.44 1.5v9c0 .83-.65 1.5-1.44 1.5zM3.44 7.5c-.24 0-.44.2-.44.5v9c0 .28.2.5.44.5h17.12c.24 0 .44-.22.44-.5v-9c0-.28-.2-.5-.44-.5H3.44z"/>
+              <path d="M5 12h2v5H5zM10.29 12l-1.71 2.5 1.71 2.5h1.42l-1.71-2.5 1.71-2.5zM15 12h2v5h-2z"/>
+            </svg>
+            <span>Markdown</span>
+            {exportFormat === 'markdown' && (
+              <div className="export-check">
+                <svg viewBox="0 0 24 24" className="check-icon">
+                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                </svg>
+              </div>
+            )}
+          </div>
+          
+          <div 
+            className={`export-option ${exportFormat === 'google-docs' ? 'selected' : ''}`}
+            onClick={() => setExportFormat('google-docs')}
+          >
+            <svg viewBox="0 0 24 24" className="icon">
+              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
+              <path d="M7 12h2v5H7zm4-7h2v12h-2zm4 7h2v5h-2z"/>
+            </svg>
+            <span>Google Docs</span>
+            {exportFormat === 'google-docs' && (
+              <div className="export-check">
+                <svg viewBox="0 0 24 24" className="check-icon">
+                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                </svg>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        <div className="current-export-method">
+          <p>Current Export Method: <strong>{exportFormat.charAt(0).toUpperCase() + exportFormat.slice(1)}</strong></p>
+        </div>
+
+        <div className="modal-actions">
+          <button 
+            className="btn btn-outline" 
+            onClick={onClose}
+            disabled={saving}
+          >
+            Cancel
+          </button>
+          <button 
+            className="btn btn-primary" 
+            onClick={() => onExport(exportFormat)}
+            disabled={saving}
+          >
+            {saving ? 'Exporting...' : 'Export'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="notes">
       <div className="container">
@@ -494,9 +737,22 @@ function Notes() {
               {formatDate(note.updated_at || note.created_at)}
             </span>
             <Link to={`/quiz/${note.id}`} className="btn">Take Quiz</Link>
-            <button className="btn">Export</button>
+            <button 
+              className="btn"
+              onClick={() => setShowExportModal(true)}
+              disabled={loading || saving}
+            >
+              Export
+            </button>
           </div>
         </div>
+        
+        {showExportModal && (
+          <ExportModal
+            onClose={() => setShowExportModal(false)}
+            onExport={handleExport}
+          />
+        )}
 
         <div className="notes-content">
           <div className="main-content card">

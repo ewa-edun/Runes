@@ -146,9 +146,16 @@ function NotesArchive() {
                     <strong>Topic:</strong> {note.topic}
                   </div>
                 )}
+                {note.teacher && (
+                  <div className="note-teacher">
+                    <strong>Teacher:</strong> {note.teacher}
+                  </div>
+                )}
+
                 <p className="note-preview">
                   {truncateText(note.note, 120) || 'No content available'}
                 </p>
+                
                 <div className="note-footer">
                   <div className="note-tags">
                     {note.tags?.slice(0, 2).map((tag, index) => (

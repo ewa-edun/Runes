@@ -202,12 +202,23 @@
 .note-topic {
   display: inline-block;
   font-size: 0.9rem;
-  color: #3498db;
-  background-color: #ebf5fb;
+  color: #f1eeea;
+  background-color: #f6b092;
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
   margin-bottom: 1rem;
   font-weight: 500;
+}
+
+.note-teacher{
+display: inline-block;
+font-size: 0.9rem;
+color: #f1eeea;
+background-color: #f6b092;
+padding: 0.25rem 0.75rem;
+border-radius: 20px;
+margin-bottom: 1rem;
+font-weight: 500;
 }
 
 .note-preview {

@@ -82,7 +82,7 @@ function Save({ noteContent, summaryContent }) {
 
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `temp/${fileName}`;
+      const filePath = `${fileName}`;
 
       const { error } = await supabase.storage
         .from('note-images')
@@ -114,7 +114,7 @@ function Save({ noteContent, summaryContent }) {
       
       // Extract the file path from the URL
       const urlParts = imageUrl.split('/');
-      const filePath = `temp/${urlParts[urlParts.length - 1]}`;
+      const filePath = `${urlParts[urlParts.length - 1]}`;
 
       // Delete from Supabase storage
       const { error } = await supabase.storage
@@ -164,7 +164,7 @@ function Save({ noteContent, summaryContent }) {
         const noteImages = [];
         for (const imageUrl of images) {
           const urlParts = imageUrl.split('/');
-          const oldPath = `temp/${urlParts[urlParts.length - 1]}`;
+          const oldPath = `${urlParts[urlParts.length - 1]}`;
           const newPath = `${noteId}/${urlParts[urlParts.length - 1]}`;
           
           // Copy the file to the new location
