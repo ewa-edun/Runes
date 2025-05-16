@@ -101,19 +101,34 @@ export const getUserNotes = async (userId) => {
 };
 
 export const getNoteById = async (noteId) => {
-  if (!noteId) return null;
+  if (!noteId) {
+    console.log("No noteId provided to getNoteById");
+    return null;
+  }
   
-  const noteRef = doc(db, 'notes', noteId);
-  const noteDoc = await getDoc(noteRef);
-  
-  if (!noteDoc.exists()) return null;
-  
-  return {
-    id: noteDoc.id,
-    ...noteDoc.data(),
-    created_at: noteDoc.data().created_at?.toDate(),
-    updated_at: noteDoc.data().updated_at?.toDate()
-  };
+  try {
+    console.log("Getting note with ID:", noteId);
+    const noteRef = doc(db, 'notes', noteId);
+    const noteDoc = await getDoc(noteRef);
+    
+    if (!noteDoc.exists()) {
+      console.log("Note document does not exist in Firestore");
+      return null;
+    }
+    
+    const noteData = noteDoc.data();
+    console.log("Raw note data:", noteData);
+    
+    return {
+      id: noteDoc.id,
+      ...noteData,
+      created_at: noteData.created_at?.toDate() || new Date(),
+      updated_at: noteData.updated_at?.toDate() || new Date()
+    };
+  } catch (error) {
+    console.error("Error in getNoteById:", error);
+    throw error;
+  }
 };
 
 export default app;

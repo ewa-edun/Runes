@@ -34,7 +34,7 @@ function App() {
                 <NotesArchive />
               </PrivateRoute>
             } />
-            <Route path="/notes/:noteId" element={
+            <Route path="/notes/:id" element={
               <PrivateRoute>
                 <Notes />
               </PrivateRoute>

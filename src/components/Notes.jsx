@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { auth } from '../config/firebase';
 import { getNoteById, updateNote, deleteNote } from '../config/firebase';
@@ -8,17 +8,17 @@ import './Notes.css';
 function Notes() {
   // Router hooks
   const { id: noteId } = useParams();
+     console.log("Note ID from URL params:", noteId);
+
   const navigate = useNavigate();
   
-  // Note state
-  const [note] = useState(null);
-  const [loading] = useState(true);
+  // All state declarations at the top
+  const [note, setNote] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [setSaving] = useState(false);
+  const [_saving, setSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState('');
-  
-  // Form state
   const [formData, setFormData] = useState({
     title: '',
     note: '',
@@ -29,17 +29,12 @@ function Notes() {
     tags: '',
     image_url: ''
   });
-  
-  // UI state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [copySuccess, setCopySuccess] = useState('');
-  
-  // Tags state
   const [tags, setTags] = useState([]);
   const [newTag, setNewTag] = useState('');
-  
-  // Image state
   const [images, setImages] = useState([]);
+  const [_previewImage, setPreviewImage] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [isLoadingImages, setIsLoadingImages] = useState(true);
   const [uploadError, setUploadError] = useState('');
@@ -48,8 +43,6 @@ function Notes() {
   const [deleteError, setDeleteError] = useState('');
   const [loadingImages, setLoadingImages] = useState(new Map());
   const [imageRetries, setImageRetries] = useState(new Map());
-  
-  // Timeouts
   const [deleteErrorTimeoutId, setDeleteErrorTimeoutId] = useState(null);
   const [copyTimeoutId, setCopyTimeoutId] = useState(null);
   const [retryLoadingTimeoutId, setRetryLoadingTimeoutId] = useState(null);
@@ -57,43 +50,52 @@ function Notes() {
   // Constants
   const MAX_RETRIES = 3;
 
+  // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
-      if (deleteErrorTimeoutId) {
-        clearTimeout(deleteErrorTimeoutId);
-      }
-      if (copyTimeoutId) {
-        clearTimeout(copyTimeoutId);
-      }
-      if (retryLoadingTimeoutId) {
-        clearTimeout(retryLoadingTimeoutId);
-      }
+      if (deleteErrorTimeoutId) clearTimeout(deleteErrorTimeoutId);
+      if (copyTimeoutId) clearTimeout(copyTimeoutId);
+      if (retryLoadingTimeoutId) clearTimeout(retryLoadingTimeoutId);
     };
   }, [deleteErrorTimeoutId, copyTimeoutId, retryLoadingTimeoutId]);
 
-  const loadNote = async (id) => {
-    try {
-      const note = await getNoteById(id);
-      if (note) {
-        setFormData({
-          title: note.title || '',
-          note: note.note || '',
-          summary: note.summary || '',
-          key_points: note.key_points || '',
-          topic: note.topic || '',
-          teacher: note.teacher || '',
-          tags: note.tags ? note.tags.join(', ') : '',
-          image_url: note.image_url || ''
-        });
-        setTags(note.tags || []);
-      }
-    } catch (error) {
-      console.error('Error loading note:', error);
-      setError('Failed to load note. Please try again.');
+  // Define fetchNote before any effects that use it
+  const fetchNote = useCallback(async () => {
+    if (!noteId) {
+      console.log("No noteId provided");
+      setError('No note ID provided');
+      setLoading(false);
+      return null;
     }
-  };
 
-  const loadImages = async (id) => {
+    try {
+      setLoading(true);
+      console.log("Fetching note with ID:", noteId);
+      const noteData = await getNoteById(noteId);
+      
+      console.log("Note data returned:", noteData);
+
+      if (!noteData) {
+        console.log("Note not found in Database");
+        setError('Note not found');
+        setLoading(false);
+        return null;
+      }
+
+      return noteData;
+    } catch (err) {
+      console.error('Error fetching note:', err);
+      setError('Failed to load note. Please try again.');
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, [noteId]);
+
+  // Load images function
+  const loadImages = useCallback(async (id) => {
+    if (!id) return;
+    
     try {
       setIsLoadingImages(true);
       setLoadError('');
@@ -112,6 +114,8 @@ function Notes() {
           return publicUrl;
         });
         setImages(imageUrls);
+      } else {
+        setImages([]);
       }
     } catch (error) {
       console.error('Error loading images:', error);
@@ -119,14 +123,64 @@ function Notes() {
     } finally {
       setIsLoadingImages(false);
     }
-  };
+  }, []);
 
+  // Main data loading effect
   useEffect(() => {
-    if (noteId) {
-      loadNote(noteId);
-      loadImages(noteId);
+    const loadNoteData = async () => {
+      if (!noteId) {
+        setLoading(false);
+        return;
+      }
+      
+      // Check if user is authenticated
+    if (!auth.currentUser) {
+      setError('You must be logged in to view notes');
+      setLoading(false);
+      return;
     }
-  }, [noteId]);
+
+      const noteData = await fetchNote();
+      
+      if (!noteData) {
+        // Error already set in fetchNote
+        return;
+      }
+
+      setNote(noteData);
+      
+      // Set form data
+      setFormData({
+        title: noteData.title || '',
+        note: noteData.note || '',
+        summary: noteData.summary || '',
+        key_points: noteData.key_points || '',
+        topic: noteData.topic || '',
+        teacher: noteData.teacher || '',
+        tags: noteData.tags ? noteData.tags.join(', ') : '',
+        image_url: noteData.image_url || ''
+      });
+      
+      // Set tags
+      if (noteData.tags && Array.isArray(noteData.tags)) {
+        setTags(noteData.tags);
+      }
+      
+      // Load images if available
+      if (noteData.image_url) {
+        setImages([noteData.image_url]);
+        setPreviewImage(noteData.image_url);
+      }
+      
+      // After data is set, load images
+      await loadImages(noteId);
+      
+      // Set loading to false after everything is loaded
+      setLoading(false);
+    };
+
+    loadNoteData();
+  }, [fetchNote, noteId, loadImages]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -373,7 +427,7 @@ function Notes() {
 
     try {
       setIsDeleting(true);
-      await deleteNote(auth.currentUser.uid, noteId);
+      await deleteNote(noteId);
       navigate('/notes');
     } catch (err) {
       console.error('Error deleting note:', err);
@@ -402,7 +456,7 @@ function Notes() {
     );
   }
 
-  if (!note) {
+  if (!note && !loading) {
     return (
       <div className="empty-state">
         <h2>Note not found</h2>
@@ -724,30 +778,6 @@ function Notes() {
                 )}
               </div>
             </div>
-          </div>
-
-          <div className="side-content">
-            {note.summary && (
-              <div className="summary-section card">
-                <h3>AI Summary</h3>
-                <div className="note-text">
-                  {note.summary.split('\n').map((paragraph, i) => (
-                    <p key={i}>{paragraph || <br />}</p>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {note.key_points && (
-              <div className="key-points card">
-                <h3>Key Points</h3>
-                <ul>
-                  {note.key_points.split('\n').filter(point => point.trim()).map((point, i) => (
-                    <li key={i}>{point}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </div>
         </div>
       </div>
