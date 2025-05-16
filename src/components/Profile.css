@@ -1,10 +1,11 @@
 .profile {
-  padding: 20px 0;
+  padding: 20px;
 }
 
 .profile-card {
   max-width: 600px;
   margin: 0 auto;
+  padding: 1.5rem;
 }
 
 .profile-header {
@@ -12,6 +13,8 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .profile-info {
@@ -53,6 +56,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 1rem;
+  font-size: 16px;
 }
 
 .action-icon {
@@ -62,14 +66,35 @@
 }
 
 @media (max-width: 480px) {
+  .profile-card {
+    padding: 1rem;
+  }
+
+  .profile-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .profile-header h2 {
+    text-align: center;
+  }
+
+  .profile-header .btn {
+    width: 100%;
+    font-size: 16px;
+  }
+
   .profile-actions {
     grid-template-columns: 1fr;
   }
 
-  .action-icon {
-    width: 16px;
-    height: 16px;
-    fill: currentColor;
+  .profile-actions .btn {
+    width: 100%;
+    font-size: 16px;
+  }
+
+  .info-item {
+    padding: 0.75rem 0;
   }
 }
 

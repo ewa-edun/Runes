@@ -2,14 +2,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 80vh;
-  padding: 1rem 0;
+  min-height: 70vh;
+  padding: 1rem;
 }
 
 .login-card {
   width: 100%;
-  max-width: 400px;
-  margin: 0 auto;
 }
 
 .login-card h2 {
@@ -22,19 +20,57 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding: 2rem;
+}
+
+.form-control {
+  position: relative;
+}
+
+.form-control input {
+  width: 90%;
+  padding: 12px;
+  font-size: 20px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  min-height: 44px;
+}
+
+.password-input {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  color: #666;
+}
+
+.password-toggle svg {
+  width: 20px;
+  height: 20px;
 }
 
 .login-form .btn {
   margin-top: 1rem;
   width: 100%;
   padding: 12px;
-  font-size: 1rem;
+  font-size: 20px;
+  min-height: 44px;
+  border-radius: 6px;
+  background-color: var(--peach-dark);
+  color: white;
+  border: none;
+  cursor: pointer;
 }
 
-.form-control input {
-  padding: 12px;
-  font-size: 1rem;
+.login-form .btn:hover {
+  background-color: var(--peach-light);
 }
 
 .auth-link {
@@ -46,7 +82,7 @@
 .auth-link a {
   color: var(--peach-dark);
   text-decoration: none;
-  padding: 4px;
+  padding: 8px;
   display: inline-block;
 }
 
@@ -61,11 +97,17 @@
   }
 
   .login-card {
+    padding: 1rem;
     box-shadow: none;
-    padding: 0;
+    width: 90%;
   }
 
-  .form-control input {
-    font-size: 16px; /* Prevents iOS zoom on input focus */
+  .form-control input,
+  .login-form .btn {
+    font-size: 20px;
+  }
+
+  .password-toggle {
+    padding: 12px;
   }
 }

@@ -25,3 +25,17 @@
   gap: 1rem;
   justify-content: center;
 }
+
+@media (max-width: 768px) {
+  .hero {
+    padding: 20px;
+  }
+
+  .hero-buttons {
+    flex-direction: row;
+    gap: 0.5rem;
+    justify-content: center;
+
+  }
+}
+  
