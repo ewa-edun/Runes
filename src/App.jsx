@@ -5,6 +5,7 @@ import Home from './components/Home'
 import Login from './components/Login'
 import Register from './components/Register'
 import Quiz from './components/Quiz'
+import Save from './components/Save'
 import NotesArchive from './components/NotesArchive'
 import Notes from './components/Notes'
 import LiveRecord from './components/LiveRecord'
@@ -41,6 +42,11 @@ function App() {
             <Route path="/record" element={
               <PrivateRoute>
                 <LiveRecord />
+              </PrivateRoute>
+            } />
+            <Route path="/save" element={
+              <PrivateRoute>
+                <Save />
               </PrivateRoute>
             } />
             <Route path="/settings" element={

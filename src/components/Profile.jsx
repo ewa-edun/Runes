@@ -1,11 +1,58 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
-import { auth } from '../config/firebase';
+import { auth, db } from '../config/firebase';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { useEffect, useState, useCallback } from 'react';
 import './Profile.css';
 
 function Profile() {
   const navigate = useNavigate();
   const user = auth.currentUser;
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user) return;
+      
+      try {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
+          setUserData(userDoc.data());
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [user]);
+
+  // Update usage_freq when user visits profile
+  const updateUsageFrequency = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      await updateDoc(userRef, {
+        usage_freq: (userData?.usage_freq || 0) + 1,
+        updatedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error updating usage frequency:', error);
+    }
+  }, [user, userData?.usage_freq]);
+
+  // Call this when component mounts
+  useEffect(() => {
+    updateUsageFrequency();
+  }, [updateUsageFrequency]);
+
+  if (loading) {
+    return <div className="loading">Loading...</div>;
+  }
 
   const handleLogout = async () => {
     try {
@@ -28,11 +75,11 @@ function Profile() {
           <div className="profile-info">
             <div className="info-item">
               <label>Name</label>
-              <p>{user?.displayName || 'Not set'}</p>
+              <p>{userData?.name || user?.displayName || 'Not set'}</p>
             </div>
             <div className="info-item">
               <label>Email</label>
-              <p>{user?.email}</p>
+              <p>{userData?.email || user?.email || 'Not set'}</p>
             </div>
           </div>
 
@@ -49,6 +96,11 @@ function Profile() {
               </svg>
               Settings
             </Link>
+
+            <div className="usage-stats">
+              <p>App Usage: {userData?.usage_freq || 0} times</p>
+              <p>Member since: {userData?.created_at?.toDate?.().toLocaleDateString() || 'N/A'}</p>
+            </div>
           </div>
         </div>
       </div>

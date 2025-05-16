@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { auth } from '../config/firebase';
+import { auth, db } from '../config/firebase'; 
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import './Register.css';
 
 function Register() {
@@ -31,14 +32,34 @@ function Register() {
     }
 
     try {
+      // Create user with email and password
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         formData.email,
         formData.password
       );
       
+      // Update user profile with display name
       await updateProfile(userCredential.user, {
         displayName: formData.fullName
+      });
+
+      // Create user document in Firestore
+      const userDocRef = doc(db, 'users', userCredential.user.uid);
+      await setDoc(userDocRef, {
+        id: userCredential.user.uid,
+        email: formData.email,
+        name: formData.fullName,
+        created_at: serverTimestamp(),
+        usage_freq: 0,
+        settings: {
+          quiz_frequency: 10, // default to every 10 notes
+          default_difficulty: 'easy'
+        },
+        daily_recap_emails: false,
+        study_reminders: false,
+        export_method: 'pdf',
+        updatedAt: serverTimestamp()
       });
 
       navigate('/');

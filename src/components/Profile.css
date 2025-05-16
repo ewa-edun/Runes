@@ -65,4 +65,22 @@
   .profile-actions {
     grid-template-columns: 1fr;
   }
+
+  .action-icon {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .action-icon {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+  }
 }

@@ -1,62 +1,62 @@
-import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { auth } from '../config/firebase';
+import { getNoteById, updateNote, deleteNote } from '../config/firebase';
 import { supabase } from '../config/supabase';
 import './Notes.css';
-import ErrorBoundary from './ErrorBoundary';
 
 function Notes() {
-  const { noteId } = useParams();
+  // Router hooks
+  const { id: noteId } = useParams();
+  const navigate = useNavigate();
+  
+  // Note state
+  const [note] = useState(null);
+  const [loading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [setSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState('');
+  
+  // Form state
+  const [formData, setFormData] = useState({
+    title: '',
+    note: '',
+    summary: '',
+    key_points: '',
+    topic: '',
+    teacher: '',
+    tags: '',
+    image_url: ''
+  });
+  
+  // UI state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [images, setImages] = useState([]); // Store multiple images
-  const [newTag, setNewTag] = useState('');
   const [copySuccess, setCopySuccess] = useState('');
-  const [copyTimeoutId, setCopyTimeoutId] = useState(null);
-  const [tags, setTags] = useState(['AI', 'Technology']); // Example tags
+  
+  // Tags state
+  const [tags, setTags] = useState([]);
+  const [newTag, setNewTag] = useState('');
+  
+  // Image state
+  const [images, setImages] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [isLoadingImages, setIsLoadingImages] = useState(true);
   const [uploadError, setUploadError] = useState('');
+  const [loadError, setLoadError] = useState('');
   const [deletingImages, setDeletingImages] = useState(new Set());
   const [deleteError, setDeleteError] = useState('');
-  const [deleteErrorTimeoutId] = useState(null);
   const [loadingImages, setLoadingImages] = useState(new Map());
   const [imageRetries, setImageRetries] = useState(new Map());
-  const [isLoadingImages, setIsLoadingImages] = useState(true);
-  const [loadError, setLoadError] = useState('');
+  
+  // Timeouts
+  const [deleteErrorTimeoutId, setDeleteErrorTimeoutId] = useState(null);
+  const [copyTimeoutId, setCopyTimeoutId] = useState(null);
   const [retryLoadingTimeoutId, setRetryLoadingTimeoutId] = useState(null);
+  
+  // Constants
   const MAX_RETRIES = 3;
 
-  // Example note data (i'll link it to the database)
-  const note = {
-    id: noteId,
-    title: 'Introduction to AI',
-    date: 'Jan 15, 2024',
-    topic: 'AI',
-    content: `Artificial Intelligence (AI) is revolutionizing how we interact with technology. Here are the key points from today's lecture:
-
-1. Definition of AI
-- Systems that can perform tasks that typically require human intelligence
-- Includes learning, reasoning, problem-solving, perception, and language understanding
-
-2. Types of AI
-- Narrow AI (focused on specific tasks)
-- General AI (human-level intelligence across tasks)
-- Super AI (theoretical future AI surpassing human intelligence)
-
-3. Applications
-- Machine Learning
-- Natural Language Processing
-- Computer Vision
-- Robotics`,
-    summary: 'This lecture covered the fundamental concepts of AI, including its definition, types, and real-world applications.',
-    keyPoints: [
-      'Understanding AI fundamentals',
-      'Different types of AI systems',
-      'Current applications in industry',
-      'Future potential and limitations'
-    ],
-    images: [] // Will store uploaded image URLs
-  };
-
-  // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
       if (deleteErrorTimeoutId) {
@@ -71,39 +71,70 @@ function Notes() {
     };
   }, [deleteErrorTimeoutId, copyTimeoutId, retryLoadingTimeoutId]);
 
-  useEffect(() => {
-    const loadImages = async () => {
-      try {
-        setIsLoadingImages(true);
-        setLoadError('');
-
-        // List all files in the note's folder
-        const { data: files, error } = await supabase.storage
-          .from('note-images')
-          .list(`${noteId}`);
-
-        if (error) throw error;
-
-        if (files && files.length > 0) {
-          const imageUrls = files.map(file => {
-            const { data: { publicUrl } } = supabase.storage
-              .from('note-images')
-              .getPublicUrl(`${noteId}/${file.name}`);
-            return publicUrl;
-          });
-
-          setImages(imageUrls);
-        }
-      } catch (error) {
-        console.error('Error loading images:', error);
-        setLoadError('Failed to load images. Please try again later.');
-      } finally {
-        setIsLoadingImages(false);
+  const loadNote = async (id) => {
+    try {
+      const note = await getNoteById(id);
+      if (note) {
+        setFormData({
+          title: note.title || '',
+          note: note.note || '',
+          summary: note.summary || '',
+          key_points: note.key_points || '',
+          topic: note.topic || '',
+          teacher: note.teacher || '',
+          tags: note.tags ? note.tags.join(', ') : '',
+          image_url: note.image_url || ''
+        });
+        setTags(note.tags || []);
       }
-    };
+    } catch (error) {
+      console.error('Error loading note:', error);
+      setError('Failed to load note. Please try again.');
+    }
+  };
 
-    loadImages();
+  const loadImages = async (id) => {
+    try {
+      setIsLoadingImages(true);
+      setLoadError('');
+      
+      const { data: files, error } = await supabase.storage
+        .from('note-images')
+        .list(`${id}`);
+
+      if (error) throw error;
+
+      if (files && files.length > 0) {
+        const imageUrls = files.map(file => {
+          const { data: { publicUrl } } = supabase.storage
+            .from('note-images')
+            .getPublicUrl(`${id}/${file.name}`);
+          return publicUrl;
+        });
+        setImages(imageUrls);
+      }
+    } catch (error) {
+      console.error('Error loading images:', error);
+      setLoadError('Failed to load images. Please try again later.');
+    } finally {
+      setIsLoadingImages(false);
+    }
+  };
+
+  useEffect(() => {
+    if (noteId) {
+      loadNote(noteId);
+      loadImages(noteId);
+    }
   }, [noteId]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   const handleImageUpload = async (e) => {
     try {
@@ -140,6 +171,9 @@ function Notes() {
         .getPublicUrl(filePath);
 
       setImages(prevImages => [...prevImages, publicUrl]);
+      
+      // Clear the file input
+      e.target.value = null;
     } catch (error) {
       console.error('Error uploading image:', error);
       setUploadError(error.message || 'Failed to upload image');
@@ -169,7 +203,10 @@ function Notes() {
     } catch (error) {
       console.error('Error deleting image:', error);
       setDeleteError('Failed to delete image. Please try again.');
-      setTimeout(() => setDeleteError(''), 3000);
+      
+      // Clear error after 3 seconds
+      const timeoutId = setTimeout(() => setDeleteError(''), 3000);
+      setDeleteErrorTimeoutId(timeoutId);
     } finally {
       setDeletingImages(prev => {
         const newSet = new Set(prev);
@@ -255,24 +292,6 @@ function Notes() {
     }
   };
 
-  const handleAddTag = (e) => {
-    e.preventDefault();
-    if (newTag.trim() && !tags.includes(newTag.trim())) {
-      setTags([...tags, newTag.trim()]);
-      setNewTag('');
-    }
-  };
-
-  const handleDeleteTag = (tagToDelete) => {
-    setTags(tags.filter(tag => tag !== tagToDelete));
-  };
-
-  const handleDelete = (type) => {
-    // Here you would implement the actual delete functionality
-    console.log(`Deleting ${type}`);
-    setShowDeleteConfirm(false);
-  };
-
   const handleRetryLoading = () => {
     // Clear any existing timeout
     if (retryLoadingTimeoutId) {
@@ -291,6 +310,7 @@ function Notes() {
     }, 10000); // 10 second timeout
 
     setRetryLoadingTimeoutId(timeoutId);
+    loadImages();
   };
 
   const handleShare = async () => {
@@ -305,6 +325,108 @@ function Notes() {
     }
   };
 
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      if (noteId) {
+        await updateNote(noteId, {
+          ...formData,
+          tags: [...new Set([...tags, ...formData.tags.split(',').map(t => t.trim()).filter(Boolean)])]
+        });
+        setEditing(false);
+      } else {
+        navigate('/notes');
+      }
+    } catch (error) {
+      console.error('Error saving note:', error);
+      setError('Failed to save note. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSubmit = handleSave;
+
+  const handleAddTag = (e) => {
+    e.preventDefault();
+    if (newTag.trim() && !tags.includes(newTag.trim())) {
+      setTags([...tags, newTag.trim()]);
+      setNewTag('');
+    }
+  };
+
+  const handleDeleteTag = (tagToDelete) => {
+    setTags(tags.filter(tag => tag !== tagToDelete));
+  };
+
+
+  const handleDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this note? This action cannot be undone.')) {
+      return;
+    }
+
+    if (!auth.currentUser) {
+      setError('You must be logged in to delete notes');
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      await deleteNote(auth.currentUser.uid, noteId);
+      navigate('/notes');
+    } catch (err) {
+      console.error('Error deleting note:', err);
+      setError('Failed to delete note. Please try again.');
+      setIsDeleting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="spinner"></div>
+        <p>Loading note...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="error-container">
+        <div className="error-message">{error}</div>
+        <button onClick={() => navigate('/notes')} className="btn btn-primary">
+          Back to Notes
+        </button>
+      </div>
+    );
+  }
+
+  if (!note) {
+    return (
+      <div className="empty-state">
+        <h2>Note not found</h2>
+        <p>The requested note could not be found or you don't have permission to view it.</p>
+        <button onClick={() => navigate('/notes')} className="btn btn-primary">
+          Back to Notes
+        </button>
+      </div>
+    );
+  }
+
+  // Format date function
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+  
   return (
     <div className="notes">
       <div className="container">
@@ -314,8 +436,10 @@ function Notes() {
             <h2>{note.title}</h2>
           </div>
           <div className="header-right">
-            <span className="note-date">{note.date}</span>
-            <Link to="/quiz" className="btn">Take Quiz</Link>
+            <span className="note-date">
+              {formatDate(note.updated_at || note.created_at)}
+            </span>
+            <Link to={`/quiz/${note.id}`} className="btn">Take Quiz</Link>
             <button className="btn">Export</button>
           </div>
         </div>
@@ -327,7 +451,7 @@ function Notes() {
               <div className="content-actions">
                 <button 
                   className="btn btn-icon" 
-                  onClick={() => copyToClipboard(note.content, 'Note')}
+                  onClick={() => copyToClipboard(note.note, 'Note')}
                   title="Copy note"
                 >
                   <svg viewBox="0 0 24 24" className="icon">
@@ -335,8 +459,23 @@ function Notes() {
                   </svg>
                 </button>
                 <button 
+                  className="btn btn-icon" 
+                  onClick={() => setEditing(!editing)}
+                  title={editing ? 'Cancel' : 'Edit'}
+                >
+                  {editing ? (
+                    <svg viewBox="0 0 24 24" className="icon">
+                      <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" className="icon">
+                      <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                    </svg>
+                  )}
+                </button>
+                <button 
                   className="btn btn-icon btn-danger" 
-                  onClick={() => setShowDeleteConfirm('note')}
+                  onClick={() => setShowDeleteConfirm(true)}
                   title="Delete note"
                 >
                   <svg viewBox="0 0 24 24" className="icon">
@@ -366,9 +505,19 @@ function Notes() {
             </div>
 
             <div className="note-text">
-              {note.content.split('\n').map((paragraph, index) => (
-                <p key={index}>{paragraph}</p>
-              ))}
+              {editing ? (
+                <textarea
+                  name="note"
+                  value={formData.note}
+                  onChange={handleChange}
+                  rows="10"
+                  className="note-edit"
+                />
+              ) : (
+                note.note.split('\n').map((paragraph, i) => (
+                  <p key={i}>{paragraph}</p>
+                ))
+              )}
             </div>
 
             <div className="image-section">
@@ -502,7 +651,7 @@ function Notes() {
                   </button>
                   <button 
                     className="btn btn-icon btn-danger" 
-                    onClick={() => setShowDeleteConfirm('summary')}
+                    onClick={() => setShowDeleteConfirm(true)}
                     title="Delete summary"
                   >
                     <svg viewBox="0 0 24 24" className="icon">
@@ -511,61 +660,128 @@ function Notes() {
                   </button>
                 </div>
               </div>
-              <p>{note.summary}</p>
+              {editing ? (
+                <textarea
+                  name="summary"
+                  value={formData.summary}
+                  onChange={handleChange}
+                  rows="5"
+                  className="summary-edit"
+                />
+              ) : (
+                <p>{note.summary || 'No summary available'}</p>
+              )}
             </div>
 
             <div className="key-points card">
               <h3>Key Points</h3>
-              <ul>
-                {note.keyPoints.map((point, index) => (
-                  <li key={index}>{point}</li>
-                ))}
-              </ul>
+              {editing ? (
+                <textarea
+                  name="key_points"
+                  value={formData.key_points}
+                  onChange={handleChange}
+                  rows="8"
+                  className="key-points-edit"
+                  placeholder="Enter key points, one per line"
+                />
+              ) : (
+                <ul>
+                  {note.key_points && note.key_points.length > 0 ? (
+                    note.key_points.split('\n').map((point, i) => (
+                      <li key={i}>{point}</li>
+                    ))
+                  ) : (
+                    <li>No key points available</li>
+                  )}
+                </ul>
+              )}
             </div>
 
             <div className="actions card">
               <h3>Actions</h3>
               <div className="action-buttons">
-                <button className="btn">Edit Notes</button>
-                <button className="btn" onClick={handleShare}>
-               {/* <svg viewBox="0 0 24 24" className="icon"> <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/> </svg> */}
-                  Share Notes
+                <button 
+                  className="btn" 
+                  onClick={() => setEditing(!editing)}
+                >
+                  {editing ? 'Cancel' : 'Edit Notes'}
                 </button>
-                <button className="btn">Generate Flashcards</button>
+                {editing ? (
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={handleSubmit}
+                    disabled={loading}
+                  >
+                    {loading ? 'Saving...' : 'Save Changes'}
+                  </button>
+                ) : (
+                  <>
+                    <button className="btn" onClick={handleShare}>
+                      Share Notes
+                    </button>
+                    <button className="btn">Generate Flashcards</button>
+                  </>
+                )}
               </div>
+            </div>
+          </div>
+
+          <div className="side-content">
+            {note.summary && (
+              <div className="summary-section card">
+                <h3>AI Summary</h3>
+                <div className="note-text">
+                  {note.summary.split('\n').map((paragraph, i) => (
+                    <p key={i}>{paragraph || <br />}</p>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {note.key_points && (
+              <div className="key-points card">
+                <h3>Key Points</h3>
+                <ul>
+                  {note.key_points.split('\n').filter(point => point.trim()).map((point, i) => (
+                    <li key={i}>{point}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {showDeleteConfirm && (
+        <div className="delete-modal">
+          <div className="delete-modal-content card">
+            <h3>Confirm Delete</h3>
+            <p>Are you sure you want to delete this note? This action cannot be undone.</p>
+            <div className="delete-modal-actions">
+              <button 
+                onClick={handleDelete}
+                className="btn btn-danger"
+                disabled={loading || isDeleting}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </button>
+              <button 
+                className="btn btn-outline" 
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
+      )}
 
-        {showDeleteConfirm && (
-          <div className="delete-modal">
-            <div className="delete-modal-content card">
-              <h3>Confirm Delete</h3>
-              <p>Are you sure you want to delete this {showDeleteConfirm}?</p>
-              <div className="delete-modal-actions">
-                <button 
-                  className="btn btn-danger" 
-                  onClick={() => handleDelete(showDeleteConfirm)}
-                >
-                  Delete
-                </button>
-                <button 
-                  className="btn btn-outline" 
-                  onClick={() => setShowDeleteConfirm(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {copySuccess && (
-          <div className="copy-notification">
-            {copySuccess}
-          </div>
-        )}
-      </div>
+      {copySuccess && (
+        <div className="copy-notification">
+          {copySuccess}
+        </div>
+      )}
     </div>
   );
 }
