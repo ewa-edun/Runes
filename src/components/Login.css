@@ -8,6 +8,9 @@
 
 .login-card {
   width: 100%;
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
 }
 
 .login-card h2 {
@@ -29,10 +32,17 @@
 .form-control input {
   width: 90%;
   padding: 12px;
-  font-size: 20px;
+  font-size: 16px;
   border: 1px solid #ddd;
   border-radius: 6px;
-  min-height: 44px;
+  background-color: #fff;
+  transition: all 0.2s ease;
+}
+
+.form-control input:focus {
+  outline: none;
+  border-color: #ddd;
+  box-shadow: 0 0 0 2px rgba(221, 221, 221, 0.2);
 }
 
 .password-input {
@@ -60,7 +70,7 @@
   margin-top: 1rem;
   width: 100%;
   padding: 12px;
-  font-size: 20px;
+  font-size: 16px;
   min-height: 44px;
   border-radius: 6px;
   background-color: var(--peach-dark);
@@ -94,17 +104,18 @@
   .login {
     padding: 1rem;
     align-items: flex-start;
+    min-height: 100vh;
   }
 
   .login-card {
-    padding: 1rem;
+    padding: 1.5rem;
+    border-radius: 0;
     box-shadow: none;
-    width: 90%;
   }
 
   .form-control input,
   .login-form .btn {
-    font-size: 20px;
+    font-size: 16px;
   }
 
   .password-toggle {

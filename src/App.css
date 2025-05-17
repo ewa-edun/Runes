@@ -64,18 +64,6 @@
   color: var(--white);
 }
 
-/* Form styles */
-.form-control {
-  margin-bottom: 1rem;
-}
-
-.form-control input {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid var(--peach-light);
-  border-radius: 4px;
-}
-
 /* Password input styles */
 .password-input {
   position: relative;
@@ -128,7 +116,6 @@
 .error-message {
   color: var(--error);
   text-align: center;
-  margin-bottom: 1rem;
   padding: 0.5rem;
   border-radius: 4px;
   font-size: 0.9rem;

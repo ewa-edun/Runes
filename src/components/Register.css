@@ -2,14 +2,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 80vh;
-  padding: 1rem 0;
+  min-height: 70vh;
+  padding: 1rem;
 }
 
 .register-card {
   width: 100%;
   max-width: 400px;
-  margin: 2px auto;
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
 }
 
 .register-card h2 {
@@ -22,19 +24,64 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding: 2rem;
+}
+
+.form-control {
+  position: relative;
+}
+
+.form-control input {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #fff;
+  transition: all 0.2s ease;
+}
+
+.form-control input:focus {
+  outline: none;
+  border-color: #ddd;
+  box-shadow: 0 0 0 2px rgba(221, 221, 221, 0.2);
+}
+
+.password-input {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  color: #666;
+}
+
+.password-toggle svg {
+  width: 20px;
+  height: 20px;
 }
 
 .register-form .btn {
   margin-top: 1rem;
   width: 100%;
   padding: 12px;
-  font-size: 1rem;
+  font-size: 16px;
+  min-height: 44px;
+  border-radius: 6px;
+  background-color: var(--peach-dark);
+  color: white;
+  border: none;
+  cursor: pointer;
 }
 
-.form-control input {
-  padding: 12px;
-  font-size: 1rem;
+.register-form .btn:hover {
+  background-color: var(--peach-light);
 }
 
 .auth-link {
@@ -46,7 +93,7 @@
 .auth-link a {
   color: var(--peach-dark);
   text-decoration: none;
-  padding: 4px;
+  padding: 8px;
   display: inline-block;
 }
 
@@ -58,14 +105,21 @@
   .register {
     padding: 1rem;
     align-items: flex-start;
+    min-height: 100vh;
   }
 
   .register-card {
+    padding: 1.5rem;
+    border-radius: 0;
     box-shadow: none;
-    padding: 3rem;
   }
 
-  .form-control input {
-    font-size: 16px; /* Prevents iOS zoom on input focus */
+  .form-control input,
+  .register-form .btn {
+    font-size: 16px;
+  }
+
+  .password-toggle {
+    padding: 12px;
   }
 }

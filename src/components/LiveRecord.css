@@ -192,27 +192,30 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 15px;
+  gap: 10px;
+  margin: 10px 0; /* Reduced margin */
 }
 
 .error {
   background: #ffefef;
   border: 1px solid #f13d3d;
   color: #c82828;
-  padding: 15px;
+  padding: 12px;
   border-radius: 6px;
   width: 100%;
   text-align: center;
+  margin: 0; /* Remove any default margins */
 }
 
 .notice {
   background: #e6f7ff;
   border: 1px solid #1890ff;
   color: #0050b3;
-  padding: 15px;
+  padding: 12px;
   border-radius: 6px;
   width: 100%;
   text-align: center;
+  margin: 0; /* Remove any default margins */
 }
 
 .button-group {
