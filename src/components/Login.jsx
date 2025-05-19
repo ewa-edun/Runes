@@ -10,15 +10,19 @@ function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      setLoading(true);
       await signInWithEmailAndPassword(auth, email, password);
       navigate('/'); // Redirect to home page after successful login
     } catch (err) {
       setError('Failed to login. Please check your credentials.');
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -64,8 +68,9 @@ function Login() {
                 )}
               </button>
             </div>
-            <button type="submit" className="btn">Login</button>
+            <button type="submit" className="btn" disabled={loading}>Login</button>
           </form>
+          <div className="loading-spinner" style={{ display: loading ? 'block' : 'none' }}></div>
           <p className="auth-link">
             Don't have an account? <Link to="/register">Register here</Link>
           </p>

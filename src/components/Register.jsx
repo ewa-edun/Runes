@@ -16,6 +16,7 @@ function Register() {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -32,6 +33,7 @@ function Register() {
     }
 
     try {
+      setLoading(true);
       // Create user with email and password
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -66,6 +68,8 @@ function Register() {
     } catch (err) {
       setError('Failed to create account. ' + err.message);
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -150,8 +154,9 @@ function Register() {
                 )}
               </button>
             </div>
-            <button type="submit" className="btn">Register</button>
+            <button type="submit" className="btn" disabled={loading}>Register</button>
           </form>
+          <div className="loading-spinner" style={{ display: loading ? 'block' : 'none' }}></div> 
           <p className="auth-link">
             Already have an account? <Link to="/login">Login here</Link>
           </p>
