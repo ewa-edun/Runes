@@ -47,6 +47,7 @@
 
 ## 📱 Planned Mobile Expansion (Post-MVP)
 - 🔄 Rewrite frontend using **React Native / Flutter / Kotlin**.
+- Also make a browser extension.
 - 📲 Publish to personal **Google Play Developer Account**.
 - 🔒 Sync user data & authentication via Firebase and Supabase.
 - 💸 Add **subscription plan** for premium features:
@@ -173,3 +174,6 @@ MIT License
 ## 🤝 Contributing
 Want to help improve Runes or contribute AR/AI modules in the future?
 Feel free to open a PR or contact me directly!
+
+## Notes 
+I also recently saw that his idea is similar to notebook lm and some other few stuff so ill research them and see how i can make mine better/unique as a selling point.
